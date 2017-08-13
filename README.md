@@ -32,9 +32,7 @@ using (var reader = new IniReader("sample.ini"))
     Console.WriteLine(reader.GetDouble("Section.float"));
 }
 
-using (var writer = new IniWriter("file.ini"))
-{
-    writer.StartSection("Sample");
-    writer.AddProperty("string", "Hello, World!");
-}
+writer.StartSection("Sample");
+writer.AddProperty("string", "Hello, World!");
+writer.Write();
 ```
