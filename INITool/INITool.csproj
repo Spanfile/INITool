@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.1.2</Version>
+    <Authors>Spanfile</Authors>
+    <Company />
+    <Description>Reader and writer for configuration files.</Description>
+  </PropertyGroup>
+
+</Project>
