@@ -1,6 +1,9 @@
 # INITool
 Tool for reading and writing configuration (.ini) files.
 
+# Disclaimer
+I will be pushing new versions to this repository as I finish them - I do not use this repository for active development.
+
 ## Format
 ```ini
 # comment
@@ -29,6 +32,3 @@ using (var reader = new IniReader("sample.ini"))
     Console.WriteLine(reader.GetDouble("Section.float"));
 }
 ```
-
-# Disclaimer
-I will be pushing new versions to this repository as I finish them - I do not use this repository for active development.
