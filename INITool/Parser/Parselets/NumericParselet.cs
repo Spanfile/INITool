@@ -24,15 +24,16 @@ namespace INITool.Parser.Parselets
             if (token.Value == "0")
             {
                 var next = Tokeniser.Peek().Value;
-                if (next == "x")
+                if (next.StartsWith("x"))
                 {
-                    tokens.Add(Tokeniser.Take());
-                    (newTokens, value) = ParseHex();
+                    token = Tokeniser.TakeOfType(TokenType.Word);
+                    tokens.Add(token);
+                    (newTokens, value) = ParseHex(token.Value);
                     return new ValueUnit(value, tokens.Concat(newTokens));
                 }
-                if (next == "b")
+                if (next.StartsWith("b"))
                 {
-                    tokens.Add(Tokeniser.Take());
+                    tokens.Add(Tokeniser.TakeOfType(TokenType.Word));
                     (newTokens, value) = ParseBinary();
                     return new ValueUnit(value, tokens.Concat(newTokens));
                 }
@@ -40,11 +41,13 @@ namespace INITool.Parser.Parselets
 
             if (token.TokenType == TokenType.Ampersand)
             {
-                if (Tokeniser.Peek().Value != "H")
-                    throw new InvalidLiteralException();
+                var next = Tokeniser.Peek();
+                if (!next.Value.StartsWith("H"))
+                    throw new InvalidLiteralException(Tokeniser.CurrentPosition);
 
-                tokens.Add(Tokeniser.Take());
-                (newTokens, value) = ParseHex();
+                token = Tokeniser.TakeOfType(TokenType.Word);
+                tokens.Add(token);
+                (newTokens, value) = ParseHex(token.Value);
                 return new ValueUnit(value, tokens.Concat(newTokens));
             }
 
@@ -52,7 +55,6 @@ namespace INITool.Parser.Parselets
             return new ValueUnit(value, tokens.Concat(newTokens));
         }
 
-        // ReSharper disable once MemberCanBeMadeStatic.Local
         private (IEnumerable<Token> tokens, object value) ParseNumeric(string firstValue)
         {
             var tokens = new List<Token>();
@@ -60,19 +62,32 @@ namespace INITool.Parser.Parselets
             var isDouble = false;
             object value;
 
-            // this doesn't use Tokeniser.TakeSequentialOfType because the criteria may change mid-iteration
-            var allowedTokens = new[] { TokenType.Digit, TokenType.Period };
-            while (allowedTokens.Contains(Tokeniser.Peek().TokenType))
+            if (firstValue == "-")
             {
-                var next = Tokeniser.Take();
-                tokens.Add(next);
-                valueBuilder.Append(next.Value);
+                var numberToken = Tokeniser.TakeOfType(TokenType.Number);
+                tokens.Add(numberToken);
+                valueBuilder.Append(numberToken.Value);
+            }
 
-                if (next.TokenType != TokenType.Period)
-                    continue;
+            if (Tokeniser.Peek().TokenType == TokenType.Period)
+            {
+                var periodToken = Tokeniser.Take();
+                tokens.Add(periodToken);
+                valueBuilder.Append(periodToken.Value);
 
-                // value is double: disallow periods
-                allowedTokens = new[] { TokenType.Digit };
+                Token decimalToken;
+                try
+                {
+                    decimalToken = Tokeniser.TakeOfType(TokenType.Number);
+                }
+                catch (InvalidTokenException e)
+                {
+                    throw new InvalidLiteralException(Tokeniser.CurrentPosition, e);
+                }
+
+                tokens.Add(decimalToken);
+                valueBuilder.Append(decimalToken.Value);
+
                 isDouble = true;
             }
 
@@ -81,59 +96,61 @@ namespace INITool.Parser.Parselets
             // the ternary expression messes up the typing and causes invalid casting
             // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
             if (isDouble)
-                value = double.Parse(valueStr);
+            {
+                if (!double.TryParse(valueStr, out var temp))
+                    throw new InvalidLiteralException(Tokeniser.CurrentPosition);
+                value = temp;
+            }
             else
-                value = long.Parse(valueStr);
+            {
+                if (!long.TryParse(valueStr, out var temp))
+                    throw new InvalidLiteralException(Tokeniser.CurrentPosition);
+                value = temp;
+            }
 
             return (tokens.AsEnumerable(), value);
         }
 
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private (IEnumerable<Token> tokens, ulong value) ParseHex()
+        private (IEnumerable<Token> tokens, ulong value) ParseHex(string firstValue)
         {
             var tokens = new List<Token>();
             var valueBuilder = new StringBuilder();
 
-            var allowedTokens = new[] { TokenType.Digit, TokenType.Letter };
-            var allowedLetters = "abcdef".ToCharArray();
-            while (allowedTokens.Contains(Tokeniser.Peek().TokenType))
-            {
-                var next = Tokeniser.Take();
+            if (firstValue.Length > 1)
+                valueBuilder.Append(firstValue.Substring(1, firstValue.Length - 1));
 
-                if (next.TokenType == TokenType.Letter)
+            var allowedLetters = "abcdef".ToCharArray();
+            foreach (var token in Tokeniser.TakeSequentialOfType(TokenType.Word, TokenType.Number))
+            {
+                if (token.TokenType == TokenType.Word)
                 {
-                    if (!allowedLetters.Contains(next.Value[0]))
-                        throw new InvalidLiteralException();
+                    if (token.Value.Any(c => !allowedLetters.Contains(c)))
+                        throw new InvalidLiteralException(Tokeniser.CurrentPosition);
                 }
 
-                tokens.Add(next);
-                valueBuilder.Append(next.Value);
+                tokens.Add(token);
+                valueBuilder.Append(token.Value);
             }
 
             var valueStr = valueBuilder.ToString();
 
-            if (!ulong.TryParse(valueStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong value))
-                throw new InvalidLiteralException();
+            if (!ulong.TryParse(valueStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var value))
+                throw new InvalidLiteralException(Tokeniser.CurrentPosition);
 
             return (tokens.AsEnumerable(), value);
         }
 
-        // ReSharper disable once MemberCanBeMadeStatic.Local
         private (IEnumerable<Token> tokens, ulong value) ParseBinary()
         {
             var tokens = new List<Token>();
             var valueBuilder = new StringBuilder();
 
-            while (Tokeniser.Peek().TokenType == TokenType.Digit)
-            {
-                var next = Tokeniser.Take();
+            var bin = Tokeniser.TakeOfType(TokenType.Number);
+            if (bin.Value.Any(d => d != '0' && d != '1'))
+                throw new InvalidLiteralException(Tokeniser.CurrentPosition);
 
-                if (next.Value != "0" && next.Value != "1")
-                    throw new InvalidLiteralException();
-
-                tokens.Add(next);
-                valueBuilder.Append(next.Value);
-            }
+            tokens.Add(bin);
+            valueBuilder.Append(bin.Value);
 
             var valueStr = valueBuilder.ToString();
             ulong value;
@@ -144,11 +161,11 @@ namespace INITool.Parser.Parselets
             }
             catch (OverflowException e)
             {
-                throw new InvalidLiteralException(e);
+                throw new InvalidLiteralException(Tokeniser.CurrentPosition, e);
             }
             catch (FormatException e)
             {
-                throw new InvalidLiteralException(e);
+                throw new InvalidLiteralException(Tokeniser.CurrentPosition, e);
             }
 
             return (tokens.AsEnumerable(), value);

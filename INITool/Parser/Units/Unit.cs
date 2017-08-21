@@ -6,14 +6,18 @@ namespace INITool.Parser.Units
 {
     internal abstract class Unit
     {
-        public IEnumerable<Token> SourceTokens => sourceTokens;
-        private readonly List<Token> sourceTokens;
+        public string Comment { get; set; }
+
+        public Position Position => SourceTokens.First().Position;
+
+        public IEnumerable<Token> SourceTokens { get; }
 
         protected Unit(IEnumerable<Token> sourceTokens)
         {
-            this.sourceTokens = new List<Token>(sourceTokens);
+            SourceTokens = new List<Token>(sourceTokens);
+            Comment = "";
         }
 
-        public string SourceTokenString() => string.Join("", sourceTokens.Select(t => t.Value));
+        public string SourceTokenString() => string.Join("", SourceTokens.Select(t => t.Value));
     }
 }

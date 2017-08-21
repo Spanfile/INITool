@@ -6,15 +6,15 @@ namespace INITool.Parser
     [Serializable]
     public class ParserException : Exception
     {
-        public ParserException()
+        internal ParserException()
         {
         }
 
-        public ParserException(string message) : base(message)
+        internal ParserException(string message) : base(message)
         {
         }
 
-        public ParserException(string message, Exception inner) : base(message, inner)
+        internal ParserException(string message, Exception inner) : base(message, inner)
         {
         }
 

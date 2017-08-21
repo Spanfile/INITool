@@ -22,11 +22,27 @@ namespace INITool
             }
         }
 
+        private static (string section, string property) ParseCommentableIdentifier(string identifier)
+        {
+            var args = identifier.Split('.');
+            switch (args.Length)
+            {
+                default:
+                    throw new InvalidPropertyIdentifierException(identifier);
+
+                case 2:
+                    return (args[0], args[1]);
+
+                case 1:
+                    return (args[0], null);
+            }
+        }
+
         private readonly ParsedSectionCollection sections;
 
-        public IniReader(string filename)
+        public IniReader(string filename, IniOptions options)
         {
-            sections = new ParsedSectionCollection(Parser.Parser.FromFile(filename));
+            sections = new ParsedSectionCollection(Parser.Parser.FromFile(filename), options);
         }
 
         public void Dispose()
@@ -53,6 +69,19 @@ namespace INITool
         public double GetDouble(string identifier) => GetProperty(identifier).GetValueAs<double>();
 
         public bool GetBool(string identifier) => GetProperty(identifier).GetValueAs<bool>();
+
+        public string GetComment(string identifier)
+        {
+            var (sectionId, propertyId) = ParseCommentableIdentifier(identifier);
+            
+            // test default section first
+            // NOTE: we pass sectionId because it actually functions as the property ID in the default section
+            if (sections.GetDefaultSection().HasProperty(sectionId))
+                return sections.GetDefaultSection().GetProperty(sectionId).Comment;
+
+            var section = sections.GetSection(sectionId);
+            return propertyId != null ? section.GetProperty(propertyId).Comment : section.Comment;
+        }
 
         private Property GetProperty(string identifier)
         {

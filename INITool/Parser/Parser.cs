@@ -4,6 +4,7 @@ using System.IO;
 using INITool.Parser.Parselets;
 using INITool.Parser.Tokeniser;
 using INITool.Parser.Units;
+using INITool.Structure;
 
 namespace INITool.Parser
 {
@@ -27,10 +28,11 @@ namespace INITool.Parser
             prefixParselets = new Dictionary<TokenType, Type>();
             infixParselets = new Dictionary<TokenType, Type>();
 
-            RegisterPrefixParselet<NameParselet>(TokenType.Letter);
+            RegisterPrefixParselet<NameParselet>(TokenType.Word);
             RegisterPrefixParselet<SectionParselet>(TokenType.LeftSquareBracket);
-            RegisterPrefixParselet<NumericParselet>(TokenType.Digit, TokenType.Dash, TokenType.Ampersand);
+            RegisterPrefixParselet<NumericParselet>(TokenType.Number, TokenType.Dash, TokenType.Ampersand);
             RegisterPrefixParselet<StringParselet>(TokenType.SingleQuote, TokenType.DoubleQuote, TokenType.At);
+            RegisterPrefixParselet<CommentParselet>(TokenType.Semicolon, TokenType.Hash);
 
             RegisterInfixParselet<AssignmentParselet>(TokenType.Equals);
         }
@@ -54,58 +56,46 @@ namespace INITool.Parser
 
         public Unit ParseUnit(bool skipNewline = true)
         {
-            while (true)
-            {
-                if (EndOfDocument)
-                    throw new EndOfDocumentException();
+            if (EndOfDocument)
+                throw new EndOfDocumentException();
 
-                // skip whitespace, possibly newlines too
-                if (skipNewline)
-                    tokeniser.TakeSequentialOfType(TokenType.Whitespace, TokenType.Newline);
-                else
-                    tokeniser.TakeSequentialOfType(TokenType.Whitespace);
-
-                var token = tokeniser.Take();
-
-                // hack: skip comments
-                if (token.TokenType == TokenType.Semicolon || token.TokenType == TokenType.Hash)
-                {
-                    while (tokeniser.Peek().TokenType != TokenType.Newline)
-                        tokeniser.Take();
-
-                    continue;
-                }
-
-                if (!prefixParselets.TryGetValue(token.TokenType, out Type prefixType))
-                {
-                    if (token.TokenType != TokenType.Empty)
-                        throw new InvalidTokenException(token);
-
-                    throw new EndOfDocumentException();
-                }
-
-                var prefix = (IPrefixParselet) GetParselet(prefixType);
-                var left = prefix.Parse(token);
-
-                // skip whitespace for infix parselets
+            // skip whitespace, possibly newlines too
+            if (skipNewline)
+                tokeniser.TakeSequentialOfType(TokenType.Whitespace, TokenType.Newline);
+            else
                 tokeniser.TakeSequentialOfType(TokenType.Whitespace);
 
-                var upcoming = tokeniser.Peek();
-                if (!infixParselets.TryGetValue(upcoming.TokenType, out Type infixType))
-                    return left;
+            var token = tokeniser.Take();
 
-                // consume the token peeked for infix parselets
-                tokeniser.Take();
-                var infix = (IInfixParselet) GetParselet(infixType);
-                return infix.Parse(left, upcoming);
+            if (!prefixParselets.TryGetValue(token.TokenType, out Type prefixType))
+            {
+                if (token.TokenType != TokenType.Empty)
+                    throw new InvalidTokenException(token);
+
+                throw new EndOfDocumentException();
             }
+
+            var prefix = (IPrefixParselet) GetParselet(prefixType);
+            var left = prefix.Parse(token);
+
+            // skip whitespace for infix parselets
+            tokeniser.TakeSequentialOfType(TokenType.Whitespace);
+
+            var upcoming = tokeniser.Peek();
+            if (!infixParselets.TryGetValue(upcoming.TokenType, out Type infixType))
+                return left;
+
+            // consume the token peeked for infix parselets
+            tokeniser.Take();
+            var infix = (IInfixParselet) GetParselet(infixType);
+            return infix.Parse(left, upcoming);
         }
 
         public T ParseUnitOfType<T>(bool skipNewline = true, bool throwOnEmptyPrefix = false) where T : Unit
         {
             var parsed = ParseUnit(skipNewline);
             if (!(parsed is T))
-                throw new UnexpectedUnitException(parsed, typeof(T));
+                throw new InvalidUnitException(parsed, typeof(T));
             return parsed as T;
         }
 

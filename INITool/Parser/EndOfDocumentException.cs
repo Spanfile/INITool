@@ -6,15 +6,15 @@ namespace INITool.Parser
     [Serializable]
     public class EndOfDocumentException : ParserException
     {
-        public EndOfDocumentException()
+        internal EndOfDocumentException()
         {
         }
 
-        public EndOfDocumentException(string message) : base(message)
+        internal EndOfDocumentException(string message) : base(message)
         {
         }
 
-        public EndOfDocumentException(string message, Exception inner) : base(message, inner)
+        internal EndOfDocumentException(string message, Exception inner) : base(message, inner)
         {
         }
 

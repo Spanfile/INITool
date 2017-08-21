@@ -6,12 +6,12 @@ namespace INITool
     [Serializable]
     public class InvalidPropertyIdentifierException : Exception
     {
-        public InvalidPropertyIdentifierException(string identifier) : base(
+        internal InvalidPropertyIdentifierException(string identifier) : base(
             $"invalid property identifier: {identifier}")
         {
         }
 
-        public InvalidPropertyIdentifierException(string identifier, Exception inner) : base(
+        internal InvalidPropertyIdentifierException(string identifier, Exception inner) : base(
             $"invalid property identifier: {identifier}", inner)
         {
         }

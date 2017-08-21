@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using INITool.Parser.Tokeniser;
 using INITool.Parser.Units;
+using INITool.Structure;
 
 namespace INITool.Parser.Parselets
 {
@@ -13,7 +14,7 @@ namespace INITool.Parser.Parselets
         public Unit Parse(Unit left, Token token)
         {
             if (!(left is NameUnit))
-                throw new UnexpectedUnitException(left, typeof(NameUnit));
+                throw new InvalidUnitException(left, typeof(NameUnit));
 
             var name = (NameUnit)left;
             var value = Parser.ParseUnitOfType<ValueUnit>(false, true);

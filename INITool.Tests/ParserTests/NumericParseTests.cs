@@ -20,6 +20,16 @@ namespace INITool.Tests.ParserTests
         }
 
         [Fact]
+        public void TestParseTooLargeInteger()
+        {
+            using (var reader = new StringReader("9223372036854775808"))
+            using (var parser = new Parser.Parser(reader))
+            {
+                Assert.Throws<InvalidLiteralException>(() => parser.ParseUnitOfType<ValueUnit>());
+            }
+        }
+
+        [Fact]
         public void TestParseFloatingPoint()
         {
             using (var reader = new StringReader("1.1"))
@@ -64,6 +74,16 @@ namespace INITool.Tests.ParserTests
                 var unit = parser.ParseUnitOfType<ValueUnit>();
                 Assert.Equal("0xdeadbeef", unit.SourceTokenString());
                 Assert.Equal(3735928559UL, unit.Value);
+            }
+        }
+
+        [Fact]
+        public void TestParseTooLargeHexLiteral()
+        {
+            using (var reader = new StringReader("0xFFFFFFFFFFFFFFFFF"))
+            using (var parser = new Parser.Parser(reader))
+            {
+                Assert.Throws<InvalidLiteralException>(() => parser.ParseUnitOfType<ValueUnit>());
             }
         }
 

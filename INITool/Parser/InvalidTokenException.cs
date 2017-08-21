@@ -5,13 +5,21 @@ using INITool.Parser.Tokeniser;
 namespace INITool.Parser
 {
     [Serializable]
-    internal class InvalidTokenException : ParserException
+    public class InvalidTokenException : ParserException
     {
-        public InvalidTokenException(Token invalidToken) : base($"invalid token: {invalidToken}")
+        internal InvalidTokenException(Token invalidToken) : base($"invalid token: {invalidToken}")
         {
         }
 
-        public InvalidTokenException(Token invalidToken, Exception inner) : base($"invalid token: {invalidToken}", inner)
+        internal InvalidTokenException(Token invalidToken, string append) : base($"invalid token: {invalidToken}. {append}")
+        {
+        }
+
+        internal InvalidTokenException(Token invalidToken, Exception inner) : base($"invalid token: {invalidToken}", inner)
+        {
+        }
+
+        internal InvalidTokenException(Token invalidToken, string append, Exception inner) : base($"invalid token: {invalidToken}. {append}", inner)
         {
         }
 

@@ -1,11 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.0
+VisualStudioVersion = 15.0.26730.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "INITool", "INITool\INITool.csproj", "{27E9C372-1210-4436-B731-A49F396CFD78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "INITool", "INITool\INITool.csproj", "{27E9C372-1210-4436-B731-A49F396CFD78}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "INITool.Tests", "INITool.Tests\INITool.Tests.csproj", "{2765DE16-8CB5-4604-8A1A-F122CFAD56FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "INITool.Tests", "INITool.Tests\INITool.Tests.csproj", "{2765DE16-8CB5-4604-8A1A-F122CFAD56FC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9ED62F53-5185-4169-8D40-5EC8F0FBEC90}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+		sample.ini = sample.ini
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

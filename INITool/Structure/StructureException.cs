@@ -6,15 +6,15 @@ namespace INITool.Structure
     [Serializable]
     public class StructureException : Exception
     {
-        public StructureException()
+        internal StructureException()
         {
         }
 
-        public StructureException(string message) : base(message)
+        internal StructureException(string message) : base(message)
         {
         }
 
-        public StructureException(string message, Exception inner) : base(message, inner)
+        internal StructureException(string message, Exception inner) : base(message, inner)
         {
         }
 

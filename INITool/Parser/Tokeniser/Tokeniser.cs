@@ -1,48 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.IO;
 using System.Linq;
+using INITool.Parser.Tokeniser.Matchers;
 
 namespace INITool.Parser.Tokeniser
 {
     internal class Tokeniser : IDisposable
     {
         public bool EndOfInput { get; private set; }
+        public Position CurrentPosition { get; private set; }
+        private Position ReadPosition => new Position(readLine, readColumn);
 
-        private readonly Dictionary<Regex, TokenType> tokenDictionary;
+        private readonly List<Matcher.MatcherDelegate> matchers;
 
         private readonly TextReader textReader;
         private readonly List<Token> tokens;
         private int iterIndex;
 
+        private int readLine;
+        private int readColumn;
+
         public Tokeniser(TextReader textReader)
         {
             this.textReader = textReader;
 
+            matchers = new List<Matcher.MatcherDelegate> {
+                WhitespaceMatcher.Match,
+                NewlineMatcher.Match,
+                SingleCharacterMatcher.Match,
+                WordMatcher.Match,
+                NumberMatcher.Match,
+                EscapeSequenceMatcher.Match,
+                UnknownMatcher.Match // unknown matcher has to be last
+            };
+
             tokens = new List<Token>();
             iterIndex = 0;
             EndOfInput = false;
-
-            tokenDictionary = new Dictionary<Regex, TokenType>();
-            PopulateTokenDictionary(new Dictionary<string, TokenType>
-            {
-                { @"[ \t\f\v]", TokenType.Whitespace },
-                { @"\n", TokenType.Newline }, // TODO: handle newline which also contains a carriage return
-                { ";", TokenType.Semicolon },
-                { "#", TokenType.Hash },
-                { @"\[", TokenType.LeftSquareBracket },
-                { @"\]", TokenType.RightSquareBracket },
-                { "=", TokenType.Equals },
-                { "'", TokenType.SingleQuote },
-                { "\"", TokenType.DoubleQuote },
-                { @"\.", TokenType.Period },
-                { "-", TokenType.Dash },
-                { "&", TokenType.Ampersand },
-                { "@", TokenType.At },
-                { @"\d", TokenType.Digit },
-                { @"[a-zA-Z]", TokenType.Letter }
-            });
         }
 
         public void Dispose()
@@ -65,6 +60,8 @@ namespace INITool.Parser.Tokeniser
             if (toReturn.TokenType != TokenType.Empty)
                 iterIndex += 1;
 
+            CurrentPosition = toReturn.Position;
+
             return toReturn;
         }
 
@@ -72,7 +69,7 @@ namespace INITool.Parser.Tokeniser
         {
             var upcoming = Peek();
             if (!types.Contains(upcoming.TokenType))
-                throw new UnexpectedTokenException($"invalid token: got {upcoming}, excepted any of types {string.Join(", ", types)}");
+                throw new InvalidTokenException(upcoming, $"excepted any of types {string.Join(", ", types)}");
 
             return Take();
         }
@@ -81,7 +78,7 @@ namespace INITool.Parser.Tokeniser
         {
             var upcoming = Peek();
             if (types.Contains(upcoming.TokenType))
-                throw new UnexpectedTokenException($"invalid token: got {upcoming}, excepted any other than types {string.Join(", ", types)}");
+                throw new InvalidTokenException(upcoming, $"excepted any other than types {string.Join(", ", types)}");
 
             return Take();
         }
@@ -116,23 +113,32 @@ namespace INITool.Parser.Tokeniser
             if (textReader.Peek() == -1)
                 return false;
 
-            var value = (char)textReader.Read();
-            tokens.Add(new Token(MatchCharacterToToken(value), value.ToString()));
+            var character = (char)textReader.Read();
+            var (type, value) = GetTokenTypeAndValue(character);
+            tokens.Add(new Token(type, value, ReadPosition));
+
+            readColumn += value.Length;
+
+            // ReSharper disable once InvertIf
+            if (type == TokenType.Newline)
+            {
+                readLine += 1;
+                readColumn = 0;
+            }
+
             return true;
         }
 
-        private void PopulateTokenDictionary(Dictionary<string, TokenType> regexToTokenDictionary)
+        private (TokenType, string) GetTokenTypeAndValue(char character)
         {
-            foreach (var regexTokenPair in regexToTokenDictionary)
-                tokenDictionary.Add(new Regex(regexTokenPair.Key, RegexOptions.Compiled | RegexOptions.CultureInvariant), regexTokenPair.Value);
-        }
+            foreach (var matcher in matchers)
+            {
+                var result = matcher(character);
+                if (result != null)
+                    return result(character, textReader);
+            }
 
-        private TokenType MatchCharacterToToken(char character)
-        {
-            var charStr = character.ToString();
-            var matchingRegex = tokenDictionary.Keys.SingleOrDefault(re => re.IsMatch(charStr));
-
-            return matchingRegex == null ? TokenType.Unknown : tokenDictionary[matchingRegex];
+            throw new ArgumentException($"no matcher found for '{character}'", nameof(character));
         }
     }
 }

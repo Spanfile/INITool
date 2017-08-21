@@ -17,7 +17,7 @@ namespace INITool.Parser.Parselets
             var tokens = new List<Token> {token};
             var nameBuilder = new StringBuilder(token.Value);
 
-            foreach (var next in Tokeniser.TakeSequentialOfType(TokenType.Letter, TokenType.Digit))
+            foreach (var next in Tokeniser.TakeSequentialOfType(TokenType.Word, TokenType.Number, TokenType.Unknown))
             {
                 tokens.Add(next);
                 nameBuilder.Append(next.Value);

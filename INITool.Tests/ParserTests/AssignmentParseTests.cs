@@ -89,7 +89,18 @@ namespace INITool.Tests.ParserTests
             using (var reader = new StringReader("10=10"))
             using (var parser = new Parser.Parser(reader))
             {
-                Assert.Throws<UnexpectedUnitException>(() => parser.ParseUnit());
+                Assert.Throws<InvalidUnitException>(() => parser.ParseUnit());
+            }
+        }
+
+
+        [Fact]
+        public void TestInvalidAssignment()
+        {
+            using (var reader = new StringReader("value=value"))
+            using (var parser = new Parser.Parser(reader))
+            {
+                Assert.Throws<InvalidUnitException>(() => parser.ParseUnitOfType<AssignmentUnit>());
             }
         }
     }

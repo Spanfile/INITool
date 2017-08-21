@@ -1,40 +1,52 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using INITool.Structure.Sections;
 
 namespace INITool
 {
-    public class IniWriter
+    public class IniWriter : IDisposable
     {
-        private readonly string filename;
         private readonly BuiltSectionCollection sectionCollection;
+        private readonly TextWriter textWriter;
 
-        public IniWriter(string filename)
+        private IniWriter(IniOptions options)
         {
-            this.filename = filename;
-            sectionCollection = new BuiltSectionCollection();
+            sectionCollection = new BuiltSectionCollection(options);
         }
 
-        public void StartSection(string name)
+        public IniWriter(string filename, IniOptions options)
+            : this(options)
         {
-            sectionCollection.StartSection(name);
+            textWriter = new StreamWriter(File.OpenRead(filename));
         }
 
-        public void AddProperty(string name, object value)
+        public IniWriter(TextWriter textWriter, IniOptions options)
+            : this(options)
         {
-            sectionCollection.AddProperty(name, value);
+            this.textWriter = textWriter;
         }
 
-        internal void WriteToStream(TextWriter writer)
+        public void Dispose()
         {
-            sectionCollection.WriteSerialisedToStream(writer);
+            Write();
+            textWriter.Dispose();
+        }
+
+        public void StartSection(string name, string comment = null)
+        {
+            sectionCollection.StartSection(name, comment);
+        }
+
+        public void AddProperty(string name, object value, string comment = null)
+        {
+            sectionCollection.AddProperty(name, value, comment);
         }
 
         public void Write()
         {
-            using (var writer = new StreamWriter(File.OpenWrite(filename)))
-            {
-                WriteToStream(writer);
-            }
+            sectionCollection.WriteSerialisedToStream(textWriter);
         }
+
+        public void Flush() => textWriter.Flush();
     }
 }
