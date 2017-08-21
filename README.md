@@ -29,20 +29,20 @@ they also ignore \escape sequences"
 
 ## Usage
 ```csharp
-using (var reader = new IniReader("sample.ini"))
+using (var reader = new IniReader("sample.ini", IniOptions.Default))
 {
-    Console.WriteLine(reader.GetInt64("no_section"));
+	Console.WriteLine(reader.GetInt64("no_section"));
     Console.WriteLine(reader.GetInt64("Section.int"));
     Console.WriteLine(reader.GetString("Section.string"));
     Console.WriteLine(reader.GetBool("Section.bool"));
     Console.WriteLine(reader.GetDouble("Section.float"));
 
-    Console.WriteLine(reader.GetComment("Section.int"));
+	Console.WriteLine(reader.GetComment("Section.int"));
 }
 
-using (var writer = new IniWriter("file.ini"))
+using (var writer = new IniWriter("file.ini", IniOptions.Default))
 {
-    writer.StartSection("sample");
-    writer.AddProperty("string", "Hello, World!", comment: "string");
+	writer.StartSection("sample");
+	writer.AddProperty("string", "Hello, World!", comment: "string");
 }
 ```

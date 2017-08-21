@@ -3,10 +3,19 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.1.2</Version>
+    <Version>0.4.0</Version>
     <Authors>Spanfile</Authors>
     <Company />
     <Description>Reader and writer for configuration files.</Description>
+    <Copyright>2017 Spanfile</Copyright>
+    <PackageProjectUrl>https://github.com/Spanfile/INITool</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Spanfile/INITool</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <PackageLicenseUrl>https://github.com/Spanfile/INITool/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageTags>ini configuration</PackageTags>
+    <NeutralLanguage />
+    <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
