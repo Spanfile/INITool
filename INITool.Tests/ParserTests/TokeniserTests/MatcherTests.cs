@@ -1,78 +1,92 @@
 ﻿using INITool.Parser.Tokeniser.Matchers;
-using Xunit;
+using NUnit.Framework;
 
 namespace INITool.Tests.ParserTests.TokeniserTests
 {
+    [TestFixture]
     public class MatcherTests
     {
-        [Theory]
-        [InlineData(' ', true)]
-        [InlineData('\t', true)]
-        [InlineData('\f', true)]
-        [InlineData('\v', true)]
-        [InlineData('\n', false)]
-        [InlineData('\r', false)]
-        public void TestWhitespace(char input, bool shouldMatch)
+        [Test]
+        public void TestValidWhitespace(
+            [Values(' ', '\t', '\f', '\v')] char input)
         {
-            Assert.Equal(shouldMatch, WhitespaceMatcher.Match(input) != null);
+            Assert.NotNull(WhitespaceMatcher.Match(input));
         }
 
-        [Theory]
-        [InlineData('\n', true)]
-        [InlineData('\r', true)]
-        [InlineData(' ', false)]
-        public void TestNewline(char input, bool shouldMatch)
+        [Test]
+        public void TestInvalidWhitespace(
+            [Values('\n', '\r')] char input)
         {
-            Assert.Equal(shouldMatch, NewlineMatcher.Match(input) != null);
+            Assert.Null(WhitespaceMatcher.Match(input));
         }
 
-        [Theory]
-        [InlineData(';', true)]
-        [InlineData('#', true)]
-        [InlineData('[', true)]
-        [InlineData(']', true)]
-        [InlineData('=', true)]
-        [InlineData('\'', true)]
-        [InlineData('"', true)]
-        [InlineData('.', true)]
-        [InlineData('-', true)]
-        [InlineData('&', true)]
-        [InlineData('@', true)]
-        [InlineData('a', false)]
-        public void TestSingleCharacter(char input, bool shouldMatch)
+        [Test]
+        public void TestValidNewline(
+            [Values('\n', '\r')] char input)
         {
-            Assert.Equal(shouldMatch, SingleCharacterMatcher.Match(input) != null);
+            Assert.NotNull(NewlineMatcher.Match(input));
         }
 
-        [Theory]
-        [InlineData('a', true)]
-        [InlineData('A', true)]
-        [InlineData('1', false)]
-        public void TestWord(char input, bool shouldMatch)
+        [Test]
+        public void TestInvalidNewline(
+            [Values(' ')] char input)
         {
-            Assert.Equal(shouldMatch, WordMatcher.Match(input) != null);
+            Assert.Null(NewlineMatcher.Match(input));
         }
 
-        [Theory]
-        [InlineData('1', true)]
-        [InlineData('a', false)]
-        public void TestNumber(char input, bool shouldMatch)
+        [Test]
+        public void TestValidSingleCharacter(
+            [Values(';', '#', '[', ']', '=', '\'', '"', '.', '-', '&', '@')] char input)
         {
-            Assert.Equal(shouldMatch, NumberMatcher.Match(input) != null);
+            Assert.NotNull(SingleCharacterMatcher.Match(input));
         }
 
-        [Fact]
+        [Test]
+        public void TestInvalidSingleCharacter(
+            [Values('a')] char input)
+        {
+            Assert.Null(SingleCharacterMatcher.Match(input));
+        }
+
+        [Test]
+        public void TestValidWord(
+            [Values('a', 'A')] char input)
+        {
+            Assert.NotNull(WordMatcher.Match(input));
+        }
+
+        [Test]
+        public void TestInvalidWord(
+            [Values('1')] char input)
+        {
+            Assert.Null(WordMatcher.Match(input));
+        }
+
+        [Test]
+        public void TestValidNumber(
+            [Values('1')] char input)
+        {
+            Assert.NotNull(NumberMatcher.Match(input));
+        }
+
+        [Test]
+        public void TestInvalidNumber(
+            [Values('a')] char input)
+        {
+            Assert.Null(NumberMatcher.Match(input));
+        }
+
+        [Test]
         public void TestEscapeSequence()
         {
             Assert.NotNull(EscapeSequenceMatcher.Match('\\'));
         }
 
-        [Theory]
-        [InlineData('_', true)]
-        [InlineData('-', true)]
-        public void TestUnknown(char input, bool shouldMatch)
+        [Test]
+        public void TestUnknown(
+            [Values('_', '-')] char input)
         {
-            Assert.Equal(shouldMatch, UnknownMatcher.Match(input) != null);
+            Assert.NotNull(UnknownMatcher.Match(input));
         }
     }
 }

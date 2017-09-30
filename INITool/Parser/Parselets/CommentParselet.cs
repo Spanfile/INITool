@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using INITool.Parser.Tokeniser;
 using INITool.Parser.Units;
 
@@ -8,7 +6,8 @@ namespace INITool.Parser.Parselets
 {
     internal class CommentParselet : Parselet, IPrefixParselet
     {
-        public CommentParselet(Parser parser, Tokeniser.Tokeniser tokeniser) : base(parser, tokeniser)
+        public CommentParselet(Parser parser, Tokeniser.Tokeniser tokeniser, IniOptions options)
+            : base(parser, tokeniser, options)
         {
         }
 

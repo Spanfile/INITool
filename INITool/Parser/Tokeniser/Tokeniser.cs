@@ -83,11 +83,22 @@ namespace INITool.Parser.Tokeniser
             return Take();
         }
 
+        // these methods aren't lazily evaluated because of the Take() side-effect
         public IEnumerable<Token> TakeSequentialOfType(params TokenType[] types)
         {
             var takenTokens = new List<Token>();
 
             while (types.Contains(Peek().TokenType))
+                takenTokens.Add(Take());
+
+            return takenTokens.AsEnumerable();
+        }
+        
+        public IEnumerable<Token> TakeSequentialOfAnyOtherThan(params TokenType[] types)
+        {
+            var takenTokens = new List<Token>();
+
+            while (!types.Contains(Peek().TokenType))
                 takenTokens.Add(Take());
 
             return takenTokens.AsEnumerable();

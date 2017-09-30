@@ -1,118 +1,310 @@
 using System;
 using INITool.Structure.Sections;
-using Xunit;
+using NUnit.Framework;
 // ReSharper disable ArgumentsStyleLiteral
+// ReSharper disable ArgumentsStyleNamedExpression
+// ReSharper disable RedundantArgumentDefaultValue
 
 namespace INITool.Tests
 {
+    [TestFixture]
     public class ReaderTests
     {
-        [Fact]
-        public void TestReadCaseSensitive()
+        [Test]
+        public void TestInvalidPropertyIdentifier()
         {
-            // ReSharper disable once RedundantArgumentDefaultValue
-            using (var reader = new IniReader("basic.ini", new IniOptions(caseSensitive: true)))
+            using (var reader = new IniReader("basic.ini", IniOptions.Default))
+            {
+                Assert.Multiple(() =>
+                {
+                    Assert.Throws<InvalidPropertyIdentifierException>(() => reader.GetString("too.many.arguments"));
+                    Assert.Throws<InvalidPropertyIdentifierException>(() => reader.GetString(""));
+                });
+            }
+        }
+
+        [Test]
+        public void TestInvalidCommentableIdentifier()
+        {
+            using (var reader = new IniReader("basic.ini", IniOptions.Default))
+            {
+                Assert.Multiple(() =>
+                {
+                    Assert.Throws<InvalidPropertyIdentifierException>(() => reader.GetComment("too.many.arguments"));
+                    Assert.Throws<InvalidPropertyIdentifierException>(() => reader.GetComment(""));
+                });
+            }
+        }
+
+        [Test]
+        public void TestReadCaseSensitive(
+            [Values] bool allowValueConversion,
+            [Values] bool allowLooseProperties)
+        {
+            var options = new IniOptions(
+                caseSensitive: true,
+                allowValueConversion: allowValueConversion,
+                allowLooseProperties: allowLooseProperties);
+
+            using (var reader = new IniReader("basic.ini", options))
             {
                 Assert.Throws<ArgumentException>(() => reader.GetInt64("Section.uppercase"));
             }
         }
 
-        [Fact]
-        public void TestReadCaseInsensitive()
+        [Test]
+        public void TestReadCaseInsensitive(
+            [Values] bool allowValueConversion,
+            [Values] bool allowLooseProperties)
         {
-            using (var reader = new IniReader("basic.ini", new IniOptions(caseSensitive: false)))
+            var options = new IniOptions(
+                caseSensitive: false,
+                allowValueConversion: allowValueConversion,
+                allowLooseProperties: allowLooseProperties);
+
+            using (var reader = new IniReader("basic.ini", options))
             {
-                Assert.Equal(10L, reader.GetInt64("Section.uppercase"));
+                Assert.AreEqual(10L, reader.GetInt64("Section.uppercase"));
             }
         }
 
-        [Fact]
-        public void TestReadInt64()
+        [Test]
+        public void TestReadInvalidType(
+            [Values] bool caseSensitive)
         {
-            using (var reader = new IniReader("basic.ini", IniOptions.Default))
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: false);
+
+            using (var reader = new IniReader("basic.ini", options))
             {
-                Assert.Equal(10L, reader.GetInt64("Section.int"));
+                Assert.Throws<InvalidCastException>(() => reader.GetDouble("Section.int"));
             }
         }
 
-        [Fact]
-        public void TestReadString()
+        [Test]
+        public void TestReadImplicitCastToStringNotAllowed(
+            [Values] bool caseSensitive)
         {
-            using (var reader = new IniReader("basic.ini", IniOptions.Default))
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: false);
+
+            using (var reader = new IniReader("basic.ini", options))
             {
-                Assert.Equal("Hello, World!", reader.GetString("Section.string"));
+                Assert.Throws<InvalidCastException>(() => reader.GetString("Section.int"));
             }
         }
 
-        [Fact]
-        public void TestReadDouble()
+        [Test]
+        public void TestReadImplicitCastToStringAllowed(
+            [Values] bool caseSensitive)
         {
-            using (var reader = new IniReader("basic.ini", IniOptions.Default))
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: true);
+
+            using (var reader = new IniReader("basic.ini", options))
             {
-                Assert.Equal(1.1d, reader.GetDouble("Section.float"));
+                Assert.AreEqual("10", reader.GetString("Section.int"));
             }
         }
 
-        [Fact]
-        public void TestReadBool()
+        [Test]
+        public void TestReadParseFromStringNotAllowed(
+            [Values] bool caseSensitive)
         {
-            using (var reader = new IniReader("basic.ini", IniOptions.Default))
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: false);
+
+            using (var reader = new IniReader("special.ini", options))
             {
-                Assert.Equal(true, reader.GetBool("Section.bool"));
+                Assert.Throws<InvalidCastException>(() => reader.GetInt64("int_in_string"));
             }
         }
 
-        [Fact]
-        public void TestImplicitReadFromDefaultSection()
+        [Test]
+        public void TestReadParseFromStringAllowed(
+            [Values] bool caseSensitive)
         {
-            using (var reader = new IniReader("basic.ini", IniOptions.Default))
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: true);
+
+            using (var reader = new IniReader("special.ini", options))
             {
-                Assert.Equal(10L, reader.GetInt64("nosection"));
+                Assert.AreEqual(10L, reader.GetInt64("int_in_string"));
             }
         }
 
-        [Fact]
-        public void TestExplicitReadFromDefaultSection()
+        [Test]
+        public void TestReadInt64(
+            [Values] bool caseSensitive,
+            [Values] bool allowValueConversion,
+            [Values] bool allowLooseProperties)
         {
-            using (var reader = new IniReader("basic.ini", IniOptions.Default))
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: allowValueConversion,
+                allowLooseProperties: allowLooseProperties);
+
+            using (var reader = new IniReader("basic.ini", options))
             {
-                Assert.Equal(10L, reader.GetInt64($"{Section.DefaultSectionName}.nosection"));
+                Assert.AreEqual(10L, reader.GetInt64("Section.int"));
             }
         }
 
-        [Fact]
-        public void TestGetCommentForSection()
+        [Test]
+        public void TestReadString(
+            [Values] bool caseSensitive,
+            [Values] bool allowValueConversion,
+            [Values] bool allowLooseProperties)
         {
-            using (var reader = new IniReader("basic.ini", IniOptions.Default))
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: allowValueConversion,
+                allowLooseProperties: allowLooseProperties);
+
+            using (var reader = new IniReader("basic.ini", options))
             {
-                Assert.Equal("section", reader.GetComment("Section"));
+                Assert.AreEqual("Hello, World!", reader.GetString("Section.string"));
             }
         }
 
-        [Fact]
-        public void TestGetCommentForProperty()
+        [Test]
+        public void TestReadDouble(
+            [Values] bool caseSensitive,
+            [Values] bool allowValueConversion,
+            [Values] bool allowLooseProperties)
         {
-            using (var reader = new IniReader("basic.ini", IniOptions.Default))
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: allowValueConversion,
+                allowLooseProperties: allowLooseProperties);
+
+            using (var reader = new IniReader("basic.ini", options))
             {
-                Assert.Equal("property", reader.GetComment("Section.string"));
+                Assert.AreEqual(1.1d, reader.GetDouble("Section.float"));
             }
         }
 
-        [Fact]
-        public void TestImplicitGetCommentForDefaultSection()
+        [Test]
+        public void TestReadBool(
+            [Values] bool caseSensitive,
+            [Values] bool allowValueConversion,
+            [Values] bool allowLooseProperties)
         {
-            using (var reader = new IniReader("basic.ini", IniOptions.Default))
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: allowValueConversion,
+                allowLooseProperties: allowLooseProperties);
+
+            using (var reader = new IniReader("basic.ini", options))
             {
-                Assert.Equal("comment\ncomment", reader.GetComment("nosection"));
+                Assert.AreEqual(true, reader.GetBool("Section.bool"));
             }
         }
 
-        [Fact]
-        public void TestExplicitGetCommentForDefaultSection()
+        [Test]
+        public void TestImplicitReadFromDefaultSection(
+            [Values] bool caseSensitive,
+            [Values] bool allowValueConversion,
+            [Values] bool allowLooseProperties)
         {
-            using (var reader = new IniReader("basic.ini", IniOptions.Default))
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: allowValueConversion,
+                allowLooseProperties: allowLooseProperties);
+
+            using (var reader = new IniReader("basic.ini", options))
             {
-                Assert.Equal("comment\ncomment", reader.GetComment($"{Section.DefaultSectionName}.nosection"));
+                Assert.AreEqual(10L, reader.GetInt64("nosection"));
+            }
+        }
+
+        [Test]
+        public void TestExplicitReadFromDefaultSection(
+            [Values] bool caseSensitive,
+            [Values] bool allowValueConversion,
+            [Values] bool allowLooseProperties)
+        {
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: allowValueConversion,
+                allowLooseProperties: allowLooseProperties);
+
+            using (var reader = new IniReader("basic.ini", options))
+            {
+                Assert.AreEqual(10L, reader.GetInt64($"{Section.DefaultSectionName}.nosection"));
+            }
+        }
+
+        [Test]
+        public void TestGetCommentForSection(
+            [Values] bool caseSensitive,
+            [Values] bool allowValueConversion,
+            [Values] bool allowLooseProperties)
+        {
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: allowValueConversion,
+                allowLooseProperties: allowLooseProperties);
+
+            using (var reader = new IniReader("basic.ini", options))
+            {
+                Assert.AreEqual("section", reader.GetComment("Section"));
+            }
+        }
+
+        [Test]
+        public void TestGetCommentForProperty(
+            [Values] bool caseSensitive,
+            [Values] bool allowValueConversion,
+            [Values] bool allowLooseProperties)
+        {
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: allowValueConversion,
+                allowLooseProperties: allowLooseProperties);
+
+            using (var reader = new IniReader("basic.ini", options))
+            {
+                Assert.AreEqual("property", reader.GetComment("Section.string"));
+            }
+        }
+
+        [Test]
+        public void TestImplicitGetCommentForDefaultSection(
+            [Values] bool caseSensitive,
+            [Values] bool allowValueConversion,
+            [Values] bool allowLooseProperties)
+        {
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: allowValueConversion,
+                allowLooseProperties: allowLooseProperties);
+
+            using (var reader = new IniReader("basic.ini", options))
+            {
+                Assert.AreEqual("comment\ncomment", reader.GetComment("nosection"));
+            }
+        }
+
+        [Test]
+        public void TestExplicitGetCommentForDefaultSection(
+            [Values] bool caseSensitive,
+            [Values] bool allowValueConversion,
+            [Values] bool allowLooseProperties)
+        {
+            var options = new IniOptions(
+                caseSensitive: caseSensitive,
+                allowValueConversion: allowValueConversion,
+                allowLooseProperties: allowLooseProperties);
+
+            using (var reader = new IniReader("basic.ini", options))
+            {
+                Assert.AreEqual("comment\ncomment", reader.GetComment($"{Section.DefaultSectionName}.nosection"));
             }
         }
     }

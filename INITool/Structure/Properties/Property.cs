@@ -63,6 +63,33 @@ namespace INITool.Structure.Properties
             return sb.ToString();
         }
 
-        public T GetValueAs<T>() => (T) value;
+        public object GetValueAs<T>()
+        {
+            // ReSharper disable once SwitchStatementMissingSomeCases
+            switch (Type.GetTypeCode(typeof(T)))
+            {
+                case TypeCode.String:
+                    if (Options.AllowValueConversion)
+                        return value.ToString();
+                    break;
+
+                case TypeCode.Int64:
+                    if (value is string s2 && Options.AllowValueConversion)
+                        return long.Parse(s2);
+                    break;
+
+                case TypeCode.Double:
+                    if (value is string s3 && Options.AllowValueConversion)
+                        return double.Parse(s3);
+                    break;
+
+                case TypeCode.Boolean:
+                    if (value is string s4 && Options.AllowValueConversion)
+                        return bool.Parse(s4);
+                    break;
+            }
+
+            return value;
+        }
     }
 }

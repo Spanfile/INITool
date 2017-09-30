@@ -3,6 +3,10 @@ using System.Runtime.Serialization;
 
 namespace INITool.Parser
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Represents an error that occurs when the end of the document is unexpectedly reached
+    /// </summary>
     [Serializable]
     public class EndOfDocumentException : ParserException
     {

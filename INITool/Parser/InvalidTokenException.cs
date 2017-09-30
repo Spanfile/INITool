@@ -4,6 +4,10 @@ using INITool.Parser.Tokeniser;
 
 namespace INITool.Parser
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Represents an error that occurs when an unexpected or otherwise invalid token is read
+    /// </summary>
     [Serializable]
     public class InvalidTokenException : ParserException
     {

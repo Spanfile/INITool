@@ -1,87 +1,95 @@
 ﻿using System.IO;
 using INITool.Parser;
 using INITool.Parser.Units;
-using Xunit;
+using NUnit.Framework;
+// ReSharper disable ArgumentsStyleNamedExpression
 
 namespace INITool.Tests.ParserTests
 {
+    [TestFixture]
     public class StringParseTests
     {
-        [Fact]
+        [Test]
         public void TestParseSingleQuotedString()
         {
+            var options = new IniOptions();
+
             using (var reader = new StringReader("'Hello, World!'"))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var unit = parser.ParseUnitOfType<ValueUnit>();
-                Assert.Equal("'Hello, World!'", unit.SourceTokenString());
-                Assert.Equal("Hello, World!", unit.Value);
+                Assert.AreEqual("'Hello, World!'", unit.SourceTokenString());
+                Assert.AreEqual("Hello, World!", unit.Value);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestParseDoubleQuotedString()
         {
             using (var reader = new StringReader("\"Hello, World!\""))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var unit = parser.ParseUnitOfType<ValueUnit>();
-                Assert.Equal("\"Hello, World!\"", unit.SourceTokenString());
-                Assert.Equal("Hello, World!", unit.Value);
+                Assert.AreEqual("\"Hello, World!\"", unit.SourceTokenString());
+                Assert.AreEqual("Hello, World!", unit.Value);
             }
         }
 
-        [Fact]
+        [Test]
+        public void TestIncompleteString()
+        {
+            using (var reader = new StringReader("\""))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
+            {
+                Assert.Throws<EndOfDocumentException>(() => parser.ParseUnitOfType<ValueUnit>());
+            }
+        }
+
+        [Test]
         public void TestNewlineInString()
         {
             using (var reader = new StringReader("\"Hello,\nWorld!\""))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 Assert.Throws<InvalidTokenException>(() => parser.ParseUnitOfType<ValueUnit>());
             }
         }
 
-        [Fact]
+        [Test]
         public void TestVerbatimString()
         {
             using (var reader = new StringReader("@\"Hello,\nWorld!\""))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var unit = parser.ParseUnitOfType<ValueUnit>();
-                Assert.Equal("@\"Hello,\nWorld!\"", unit.SourceTokenString());
-                Assert.Equal("Hello,\nWorld!", unit.Value);
+                Assert.AreEqual("@\"Hello,\nWorld!\"", unit.SourceTokenString());
+                Assert.AreEqual("Hello,\nWorld!", unit.Value);
             }
         }
 
-        [Theory]
-        [InlineData(@"\b", "\b")]
-        [InlineData(@"\n", "\n")]
-        [InlineData(@"\r", "\r")]
-        [InlineData(@"\t", "\t")]
-        [InlineData(@"\v", "\v")]
-        [InlineData(@"\\", "\\")]
-        [InlineData(@"\'", "'")]
-        [InlineData(@"\""", "\"")]
-        public void TestEscapeSequences(string input, string escape)
+        [Test, Sequential]
+        public void TestEscapeSequences(
+            [Values(@"\b", @"\n", @"\r", @"\t", @"\v", @"\\", @"\'", @"\""")] string input,
+            [Values("\b", "\n", "\r", "\t", "\v", "\\", "'", "\"")] string escape)
         {
             using (var reader = new StringReader($"\"{input}\""))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var unit = parser.ParseUnitOfType<ValueUnit>();
-                Assert.Equal($"\"{input}\"", unit.SourceTokenString());
-                Assert.Equal(escape, unit.Value);
+                Assert.AreEqual($"\"{input}\"", unit.SourceTokenString());
+                Assert.AreEqual(escape, unit.Value);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestVerbatimEscapeSequenceString()
         {
             using (var reader = new StringReader(@"@""Hello,\nWorld!"""))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var unit = parser.ParseUnitOfType<ValueUnit>();
-                Assert.Equal(@"@""Hello,\nWorld!""", unit.SourceTokenString());
-                Assert.Equal(@"Hello,\nWorld!", unit.Value);
+                Assert.AreEqual(@"@""Hello,\nWorld!""", unit.SourceTokenString());
+                Assert.AreEqual(@"Hello,\nWorld!", unit.Value);
             }
         }
     }

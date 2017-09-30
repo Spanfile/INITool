@@ -1,117 +1,119 @@
 ﻿using System.IO;
 using INITool.Parser.Units;
 using INITool.Structure.Properties;
-using Xunit;
+using NUnit.Framework;
 // ReSharper disable RedundantArgumentDefaultValue
+// ReSharper disable ArgumentsStyleNamedExpression
 
 namespace INITool.Tests.StructureTests
 {
+    [TestFixture]
     public class PropertyTests
     {
-        [Fact]
+        [Test]
         public void TestComment()
         {
             using (var reader = new StringReader("#comment\nvalue=10"))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var prop = Property.FromParsedAssignmentUnit(parser.ParseUnitOfType<AssignmentUnit>(), IniOptions.Default);
 
-                Assert.Equal("comment", prop.Comment);
+                Assert.AreEqual("comment", prop.Comment);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestFromIntegerAssignment()
         {
             using (var reader = new StringReader("value=10"))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var prop = Property.FromParsedAssignmentUnit(parser.ParseUnitOfType<AssignmentUnit>(), IniOptions.Default);
 
-                Assert.Equal("value", prop.Name);
-                Assert.Equal(10L, prop.GetValueAs<long>());
+                Assert.AreEqual("value", prop.Name);
+                Assert.AreEqual(10L, prop.GetValueAs<long>());
             }
         }
 
-        [Fact]
+        [Test]
         public void TestFromFloatingPointAssignment()
         {
             using (var reader = new StringReader("value=1.1"))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var prop = Property.FromParsedAssignmentUnit(parser.ParseUnitOfType<AssignmentUnit>(), IniOptions.Default);
 
-                Assert.Equal("value", prop.Name);
-                Assert.Equal(1.1d, prop.GetValueAs<double>());
+                Assert.AreEqual("value", prop.Name);
+                Assert.AreEqual(1.1d, prop.GetValueAs<double>());
             }
         }
 
-        [Fact]
+        [Test]
         public void TestFromBooleanAssignment()
         {
             using (var reader = new StringReader("value=true"))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var prop = Property.FromParsedAssignmentUnit(parser.ParseUnitOfType<AssignmentUnit>(), IniOptions.Default);
 
-                Assert.Equal("value", prop.Name);
-                Assert.Equal(true, prop.GetValueAs<bool>());
+                Assert.AreEqual("value", prop.Name);
+                Assert.AreEqual(true, prop.GetValueAs<bool>());
             }
         }
 
-        [Fact]
+        [Test]
         public void TestFromStringAssignment()
         {
             using (var reader = new StringReader("value=\"Hello, World!\""))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var prop = Property.FromParsedAssignmentUnit(parser.ParseUnitOfType<AssignmentUnit>(), IniOptions.Default);
 
-                Assert.Equal("value", prop.Name);
-                Assert.Equal("Hello, World!", prop.GetValueAs<string>());
+                Assert.AreEqual("value", prop.Name);
+                Assert.AreEqual("Hello, World!", prop.GetValueAs<string>());
             }
         }
 
-        [Fact]
+        [Test]
         public void TestSerialiseInteger()
         {
             var prop = new Property("value", 10L, IniOptions.Default);
-            Assert.Equal("value=10", prop.SerialiseToString());
+            Assert.AreEqual("value=10", prop.SerialiseToString());
         }
 
-        [Fact]
+        [Test]
         public void TestSerialiseFloatingPoint()
         {
             var prop = new Property("value", 1.1d, IniOptions.Default);
-            Assert.Equal("value=1.1", prop.SerialiseToString());
+            Assert.AreEqual("value=1.1", prop.SerialiseToString());
         }
 
-        [Fact]
+        [Test]
         public void TestSerialiseBoolean()
         {
             var prop = new Property("value", true, IniOptions.Default);
-            Assert.Equal("value=true", prop.SerialiseToString());
+            Assert.AreEqual("value=true", prop.SerialiseToString());
         }
 
-        [Fact]
+        [Test]
         public void TestSerialiseNormalString()
         {
             var prop = new Property("value", "Hello, World!", IniOptions.Default);
-            Assert.Equal("value=\"Hello, World!\"", prop.SerialiseToString());
+            Assert.AreEqual("value=\"Hello, World!\"", prop.SerialiseToString());
         }
 
-        [Fact]
+        [Test]
         public void TestSerialiseStringWithNewlineToVerbatim()
         {
             var prop = new Property("value", "Hello,\nWorld!", new IniOptions(stringSerialisationPolicy: StringSerialisationPolicy.ToVerbatim));
-            Assert.Equal("value=@\"Hello,\nWorld!\"", prop.SerialiseToString());
+            Assert.AreEqual("value=@\"Hello,\nWorld!\"", prop.SerialiseToString());
         }
 
-        [Fact]
+        [Test]
         public void TestSerialiseStringWithNewlineToEscapeSequences()
         {
             var prop = new Property("value", "Hello,\nWorld!", new IniOptions(stringSerialisationPolicy: StringSerialisationPolicy.ToEscapeSequences));
-            Assert.Equal("value=\"Hello,\\nWorld!\"", prop.SerialiseToString());
+            Assert.AreEqual("value=\"Hello,\\nWorld!\"", prop.SerialiseToString());
         }
     }
 }

@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using INITool.Parser.Units;
-using INITool.Structure;
 
 namespace INITool
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Represents an error that occurs when reading an unexpected or otherwise invalid unit
+    /// </summary>
     [Serializable]
     public class InvalidUnitException : Exception
     {

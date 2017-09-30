@@ -6,13 +6,14 @@ namespace INITool.Parser.Parselets
 {
     internal class SectionParselet : Parselet, IPrefixParselet
     {
-        public SectionParselet(Parser parser, Tokeniser.Tokeniser tokeniser) : base(parser, tokeniser)
+        public SectionParselet(Parser parser, Tokeniser.Tokeniser tokeniser, IniOptions options)
+            : base(parser, tokeniser, options)
         {
         }
 
         public Unit Parse(Token token)
         {
-            var name = Parser.ParseUnitOfType<NameUnit>();
+            var name = Parser.ParseUnitOfType<NameUnit>(allowSingleUnitTransform: false);
             var rightSquare = Tokeniser.TakeOfType(TokenType.RightSquareBracket);
             return new SectionUnit(name, new [] {token}.Concat(name.SourceTokens).Append(rightSquare));
         }

@@ -1,35 +1,36 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using INITool.Parser;
 using INITool.Parser.Tokeniser;
-using Xunit;
-using System;
+using NUnit.Framework;
 
 namespace INITool.Tests.ParserTests.TokeniserTests
 {
-    public class TokeniserTests
+    [TestFixture]
+    internal class TokeniserTests
     {
-        [Fact]
+        [Test]
         public void TestTokenToString()
         {
             using (var reader = new StringReader("a"))
             using (var tokeniser = new Tokeniser(reader))
             {
-                Assert.Equal("<ln 0 col 0, Word: 'a'>", tokeniser.Take().ToString());
+                Assert.AreEqual("<ln 0 col 0, Word: 'a'>", tokeniser.Take().ToString());
             }
         }
 
-        [Fact]
+        [Test]
         public void TestTakeOfTypeValid()
         {
             using (var reader = new StringReader(";"))
             using (var tokeniser = new Tokeniser(reader))
             {
-                tokeniser.TakeOfType(TokenType.Semicolon);
+                Assert.DoesNotThrow(() => tokeniser.TakeOfType(TokenType.Semicolon));
             }
         }
 
-        [Fact]
+        [Test]
         public void TestTakeOfTypeInvalid()
         {
             using (var reader = new StringReader("#"))
@@ -39,17 +40,17 @@ namespace INITool.Tests.ParserTests.TokeniserTests
             }
         }
 
-        [Fact]
+        [Test]
         public void TestTakeAnyOtherThanValid()
         {
             using (var reader = new StringReader("#"))
             using (var tokeniser = new Tokeniser(reader))
             {
-                tokeniser.TakeAnyOtherThan(TokenType.Semicolon);
+                Assert.DoesNotThrow(() => tokeniser.TakeAnyOtherThan(TokenType.Semicolon));
             }
         }
 
-        [Fact]
+        [Test]
         public void TestTakeAnyOtherThanInvalid()
         {
             using (var reader = new StringReader(";"))
@@ -59,100 +60,113 @@ namespace INITool.Tests.ParserTests.TokeniserTests
             }
         }
 
-        [Fact]
+        [Test]
         public void TestRepeatedPeek()
         {
             using (var reader = new StringReader(";"))
             using (var tokeniser = new Tokeniser(reader))
             {
                 for (var i = 0; i < 5; i++)
-                    Assert.Equal(TokenType.Semicolon, tokeniser.Peek().TokenType);
+                    Assert.AreEqual(TokenType.Semicolon, tokeniser.Peek().TokenType);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestTakeTokensOfType()
         {
             using (var reader = new StringReader(";;;;;"))
             using (var tokeniser = new Tokeniser(reader))
             {
-                var tokens = tokeniser.TakeSequentialOfType(TokenType.Semicolon).ToArray();
-                Assert.Equal(5, tokens.Length);
+                var tokens = tokeniser.TakeSequentialOfType(TokenType.Semicolon);
+                Assert.AreEqual(5, tokens.Count());
                 foreach (var token in tokens)
-                    Assert.Equal(TokenType.Semicolon, token.TokenType);
+                    Assert.AreEqual(TokenType.Semicolon, token.TokenType);
+            }
+        }
+        
+        [Test]
+        public void TestTakeTokensOfAnyOtherThan()
+        {
+            using (var reader = new StringReader(";;;;;#"))
+            using (var tokeniser = new Tokeniser(reader))
+            {
+                var tokens = tokeniser.TakeSequentialOfAnyOtherThan(TokenType.Hash);
+                Assert.AreEqual(5, tokens.Count());
+                foreach (var token in tokens)
+                    Assert.AreEqual(TokenType.Semicolon, token.TokenType);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestTakeEmptyToken()
         {
             using (var reader = new StringReader(""))
             using (var tokeniser = new Tokeniser(reader))
             {
-                Assert.Equal(TokenType.Empty, tokeniser.Take().TokenType);
+                Assert.AreEqual(TokenType.Empty, tokeniser.Take().TokenType);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestEndOfInput()
         {
             using (var reader = new StringReader(""))
             using (var tokeniser = new Tokeniser(reader))
             {
                 tokeniser.Take();
-                Assert.Equal(true, tokeniser.EndOfInput);
+                Assert.AreEqual(true, tokeniser.EndOfInput);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestTakeEmptyTokens()
         {
             using (var reader = new StringReader(""))
             using (var tokeniser = new Tokeniser(reader))
             {
                 for (var i = 0; i < 3; i++)
-                    Assert.Equal(TokenType.Empty, tokeniser.Take().TokenType);
+                    Assert.AreEqual(TokenType.Empty, tokeniser.Take().TokenType);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestTokenPositions()
         {
             using (var reader = new StringReader("a\na\r\na"))
             using (var tokeniser = new Tokeniser(reader))
             {
-                Assert.Equal(new Position(0, 0), tokeniser.Take().Position);
-                Assert.Equal(new Position(0, 1), tokeniser.Take().Position);
-                Assert.Equal(new Position(1, 0), tokeniser.Take().Position);
-                Assert.Equal(new Position(1, 1), tokeniser.Take().Position);
-                Assert.Equal(new Position(2, 0), tokeniser.Take().Position);
+                Assert.AreEqual(new Position(0, 0), tokeniser.Take().Position);
+                Assert.AreEqual(new Position(0, 1), tokeniser.Take().Position);
+                Assert.AreEqual(new Position(1, 0), tokeniser.Take().Position);
+                Assert.AreEqual(new Position(1, 1), tokeniser.Take().Position);
+                Assert.AreEqual(new Position(2, 0), tokeniser.Take().Position);
 
-                Assert.Equal(new Position(2, 0), tokeniser.CurrentPosition);
+                Assert.AreEqual(new Position(2, 0), tokeniser.CurrentPosition);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestWhitespace()
         {
             using (var reader = new StringReader(" \t\f\va"))
             using (var tokeniser = new Tokeniser(reader))
             {
-                Assert.Equal(" \t\f\v", tokeniser.TakeOfType(TokenType.Whitespace).Value);
+                Assert.AreEqual(" \t\f\v", tokeniser.TakeOfType(TokenType.Whitespace).Value);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestNewline()
         {
             using (var reader = new StringReader("\n\r\n"))
             using (var tokeniser = new Tokeniser(reader))
             {
-                Assert.Equal("\n", tokeniser.TakeOfType(TokenType.Newline).Value);
-                Assert.Equal("\r\n", tokeniser.TakeOfType(TokenType.Newline).Value);
+                Assert.AreEqual("\n", tokeniser.TakeOfType(TokenType.Newline).Value);
+                Assert.AreEqual("\r\n", tokeniser.TakeOfType(TokenType.Newline).Value);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestIncompleteNewline()
         {
             using (var reader = new StringReader("\r"))
@@ -162,80 +176,79 @@ namespace INITool.Tests.ParserTests.TokeniserTests
             }
         }
 
-        [Theory]
-        [InlineData("Semicolon", ";")]
-        [InlineData("Hash", "#")]
-        [InlineData("LeftSquareBracket", "[")]
-        [InlineData("RightSquareBracket", "]")]
-        [InlineData("Equals", "=")]
-        [InlineData("SingleQuote", "'")]
-        [InlineData("DoubleQuote", "\"")]
-        [InlineData("Period", ".")]
-        [InlineData("Dash", "-")]
-        [InlineData("Ampersand", "&")]
-        [InlineData("At", "@")]
-        public void TestSingleCharacters(string typeStr, string input)
-        {
-            var type = Enum.Parse<TokenType>(typeStr);
-            using (var reader = new StringReader(input))
-            using (var tokeniser = new Tokeniser(reader))
-            {
-                Assert.Equal(input, tokeniser.TakeOfType(type).Value);
-            }
-        }
-
-        [Theory]
-        [InlineData("a")]
-        [InlineData("aA")]
-        public void TestWord(string input)
+        [Test, Sequential]
+        public void TestSingleCharacters(
+            [Values(
+            TokenType.Semicolon,
+            TokenType.Hash,
+            TokenType.LeftSquareBracket,
+            TokenType.RightSquareBracket,
+            TokenType.Equals,
+            TokenType.SingleQuote,
+            TokenType.DoubleQuote,
+            TokenType.Period,
+            TokenType.Dash,
+            TokenType.Ampersand,
+            TokenType.At)] TokenType type,
+            [Values(";", "#", "[", "]", "=", "'", "\"", ".", "-", "&", "@")] string input)
         {
             using (var reader = new StringReader(input))
             using (var tokeniser = new Tokeniser(reader))
             {
-                Assert.Equal(input, tokeniser.TakeOfType(TokenType.Word).Value);
+                Assert.AreEqual(input, tokeniser.TakeOfType(type).Value);
             }
         }
 
-        [Theory]
-        [InlineData("1")]
-        [InlineData("11")]
-        public void TestNumber(string input)
+        [Test]
+        public void TestWord(
+            [Values("a", "aA")] string input)
         {
             using (var reader = new StringReader(input))
             using (var tokeniser = new Tokeniser(reader))
             {
-                Assert.Equal(input, tokeniser.TakeOfType(TokenType.Number).Value);
+                Assert.AreEqual(input, tokeniser.TakeOfType(TokenType.Word).Value);
             }
         }
 
-        [Fact]
+        [Test]
+        public void TestNumber(
+            [Values("1", "11")] string input)
+        {
+            using (var reader = new StringReader(input))
+            using (var tokeniser = new Tokeniser(reader))
+            {
+                Assert.AreEqual(input, tokeniser.TakeOfType(TokenType.Number).Value);
+            }
+        }
+
+        [Test]
         public void TestEscapeSequence()
         {
             using (var reader = new StringReader("\\a"))
             using (var tokeniser = new Tokeniser(reader))
             {
-                Assert.Equal("\\a", tokeniser.TakeOfType(TokenType.EscapeSequence).Value);
+                Assert.AreEqual("\\a", tokeniser.TakeOfType(TokenType.EscapeSequence).Value);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestSingleUnknown()
         {
             using (var reader = new StringReader("_"))
             using (var tokeniser = new Tokeniser(reader))
             {
-                Assert.Equal("_", tokeniser.TakeOfType(TokenType.Unknown).Value);
+                Assert.AreEqual("_", tokeniser.TakeOfType(TokenType.Unknown).Value);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestMultipleUnknowns()
         {
             using (var reader = new StringReader("__"))
             using (var tokeniser = new Tokeniser(reader))
             {
-                Assert.Equal("_", tokeniser.TakeOfType(TokenType.Unknown).Value);
-                Assert.Equal("_", tokeniser.TakeOfType(TokenType.Unknown).Value);
+                Assert.AreEqual("_", tokeniser.TakeOfType(TokenType.Unknown).Value);
+                Assert.AreEqual("_", tokeniser.TakeOfType(TokenType.Unknown).Value);
             }
         }
     }

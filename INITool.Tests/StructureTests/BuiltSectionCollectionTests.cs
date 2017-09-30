@@ -1,12 +1,14 @@
 ﻿using System;
 using INITool.Structure.Sections;
-using Xunit;
+using NUnit.Framework;
+// ReSharper disable ArgumentsStyleNamedExpression
 
 namespace INITool.Tests.StructureTests
 {
+    [TestFixture]
     public class BuiltSectionCollectionTests
     {
-        [Fact]
+        [Test]
         public void TestMultipleSectionsWithProperties()
         {
             var builder = new BuiltSectionCollection(IniOptions.Default);
@@ -17,10 +19,10 @@ namespace INITool.Tests.StructureTests
             builder.AddProperty("value", 10L);
 
             var built = builder.SerialiseToString();
-            Assert.Equal("[section1]\nvalue=10\n[section2]\nvalue=10\n", built);
+            Assert.AreEqual("[section1]\nvalue=10\n[section2]\nvalue=10\n", built);
         }
 
-        [Fact]
+        [Test]
         public void TestOmittedDefaultSection()
         {
             var builder = new BuiltSectionCollection(IniOptions.Default);
@@ -30,10 +32,10 @@ namespace INITool.Tests.StructureTests
             builder.AddProperty("value", 10L);
 
             var built = builder.SerialiseToString();
-            Assert.Equal("value=10\n[section2]\nvalue=10\n", built);
+            Assert.AreEqual("value=10\n[section2]\nvalue=10\n", built);
         }
 
-        [Fact]
+        [Test]
         public void TestInvalidPropertyType()
         {
             var builder = new BuiltSectionCollection(IniOptions.Default);
@@ -41,7 +43,7 @@ namespace INITool.Tests.StructureTests
             Assert.Throws<ArgumentException>(() => builder.AddProperty("invalid", new DateTime(1970, 1, 1)));
         }
 
-        [Fact]
+        [Test]
         public void TestDefaultSectionBlock()
         {
             var builder = new BuiltSectionCollection(IniOptions.Default);
@@ -49,7 +51,7 @@ namespace INITool.Tests.StructureTests
             Assert.Throws<ArgumentException>(() => builder.StartSection(Section.DefaultSectionName));
         }
 
-        [Fact]
+        [Test]
         public void TestDefaultSectionBlockCaseInvariant()
         {
             var builder = new BuiltSectionCollection(IniOptions.Default);

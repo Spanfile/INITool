@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using INITool.Parser.Tokeniser;
@@ -11,7 +10,8 @@ namespace INITool.Parser.Parselets
     {
         private readonly Dictionary<char, char> escapeSequences;
 
-        public StringParselet(Parser parser, Tokeniser.Tokeniser tokeniser) : base(parser, tokeniser)
+        public StringParselet(Parser parser, Tokeniser.Tokeniser tokeniser, IniOptions options)
+            : base(parser, tokeniser, options)
         {
             escapeSequences = new Dictionary<char, char> {
                  {'b', '\b'},
@@ -46,6 +46,10 @@ namespace INITool.Parser.Parselets
             while (Tokeniser.Peek().TokenType != token.TokenType)
             {
                 var next = Tokeniser.Take();
+
+                if (next.TokenType == TokenType.Empty)
+                    throw new EndOfDocumentException();
+
                 if (!isVerbatim)
                 {
                     if (next.TokenType == TokenType.Newline)

@@ -1,32 +1,34 @@
 ﻿using System.IO;
 using INITool.Parser.Units;
-using Xunit;
+using NUnit.Framework;
+// ReSharper disable ArgumentsStyleNamedExpression
 
 namespace INITool.Tests.ParserTests
 {
+    [TestFixture]
     public class BooleanParseTests
     {
-        [Fact]
+        [Test]
         public void TestParseTrue()
         {
             using (var reader = new StringReader("true"))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var unit = parser.ParseUnitOfType<ValueUnit>();
-                Assert.Equal("true", unit.SourceTokenString());
-                Assert.Equal(true, unit.Value);
+                Assert.AreEqual("true", unit.SourceTokenString());
+                Assert.AreEqual(true, unit.Value);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestParseFalse()
         {
             using (var reader = new StringReader("false"))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var unit = parser.ParseUnitOfType<ValueUnit>();
-                Assert.Equal("false", unit.SourceTokenString());
-                Assert.Equal(false, unit.Value);
+                Assert.AreEqual("false", unit.SourceTokenString());
+                Assert.AreEqual(false, unit.Value);
             }
         }
     }

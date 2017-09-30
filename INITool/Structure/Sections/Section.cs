@@ -46,10 +46,13 @@ namespace INITool.Structure.Sections
 
         public Property GetProperty(string name)
         {
-            if (!properties.TryGetValue(name, out var prop))
+            if (properties.TryGetValue(name, out var prop))
+                return prop;
+
+            if (Options.ThrowAtNonexistentProperty)
                 throw new ArgumentException($"property {name} not found in {Name}", nameof(name));
 
-            return prop;
+            return null;
         }
 
         public bool HasProperty(string name) => properties.ContainsKey(name);

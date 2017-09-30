@@ -3,26 +3,28 @@ using System.IO;
 using INITool.Parser.Units;
 using INITool.Structure.Properties;
 using INITool.Structure.Sections;
-using Xunit;
+using NUnit.Framework;
+// ReSharper disable ArgumentsStyleNamedExpression
 
 namespace INITool.Tests.StructureTests
 {
+    [TestFixture]
     public class SectionTests
     {
-        [Fact]
+        [Test]
         public void TestFromParsedSection()
         {
             using (var reader = new StringReader("#comment\n[section]"))
-            using (var parser = new Parser.Parser(reader))
+            using (var parser = new Parser.Parser(reader, IniOptions.Default))
             {
                 var section = Section.FromParsedSectionUnit(parser.ParseUnitOfType<SectionUnit>(), IniOptions.Default);
 
-                Assert.Equal("comment", section.Comment);
-                Assert.Equal("section", section.Name);
+                Assert.AreEqual("comment", section.Comment);
+                Assert.AreEqual("section", section.Name);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestDuplicateProperty()
         {
             var section = Section.CreateDefault(IniOptions.Default);
@@ -31,12 +33,20 @@ namespace INITool.Tests.StructureTests
             Assert.Throws<ArgumentException>(() => section.AddProperty(new Property("a", "a", IniOptions.Default)));
         }
 
-        [Fact]
-        public void TestNonexistantProperty()
+        [Test]
+        public void TestNonexistantPropertyThrowsException()
         {
             var section = Section.CreateDefault(IniOptions.Default);
 
             Assert.Throws<ArgumentException>(() => section.GetProperty("a"));
+        }
+
+        [Test]
+        public void TestNonexistantPropertyReturnsNull()
+        {
+            var section = Section.CreateDefault(new IniOptions(throwAtNonexistentProperty: false));
+
+            Assert.Null(section.GetProperty("a"));
         }
     }
 }

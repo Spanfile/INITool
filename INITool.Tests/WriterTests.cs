@@ -1,12 +1,13 @@
 ﻿using System.IO;
-using Xunit;
+using NUnit.Framework;
 // ReSharper disable InconsistentNaming
 
 namespace INITool.Tests
 {
+    [TestFixture]
     public class WriterTests
     {
-        [Fact]
+        [Test]
         public void TestBasicWrite()
         {
             using (var mem = new MemoryStream())
@@ -20,11 +21,11 @@ namespace INITool.Tests
                 mem.Position = 0;
                 var memReader = new StreamReader(mem);
                 var read = memReader.ReadToEnd();
-                Assert.Equal("value=10\n", read);
+                Assert.AreEqual("value=10\n", read);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestSectionWrite()
         {
             using (var mem = new MemoryStream())
@@ -39,11 +40,11 @@ namespace INITool.Tests
                 mem.Position = 0;
                 var memReader = new StreamReader(mem);
                 var read = memReader.ReadToEnd();
-                Assert.Equal("[section]\nvalue=10\n", read);
+                Assert.AreEqual("[section]\nvalue=10\n", read);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestPropertyComment()
         {
             using (var mem = new MemoryStream())
@@ -57,11 +58,11 @@ namespace INITool.Tests
                 mem.Position = 0;
                 var memReader = new StreamReader(mem);
                 var read = memReader.ReadToEnd();
-                Assert.Equal("#property\nvalue=10\n", read);
+                Assert.AreEqual("#property\nvalue=10\n", read);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestSectionComment()
         {
             using (var mem = new MemoryStream())
@@ -75,11 +76,11 @@ namespace INITool.Tests
                 mem.Position = 0;
                 var memReader = new StreamReader(mem);
                 var read = memReader.ReadToEnd();
-                Assert.Equal("#section\n[section]\n", read);
+                Assert.AreEqual("#section\n[section]\n", read);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestLineEndingLF()
         {
             using (var mem = new MemoryStream())
@@ -93,11 +94,11 @@ namespace INITool.Tests
                 mem.Position = 0;
                 var memReader = new StreamReader(mem);
                 var read = memReader.ReadToEnd();
-                Assert.Equal("[section]\n", read);
+                Assert.AreEqual("[section]\n", read);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestLineEndingCR()
         {
             using (var mem = new MemoryStream())
@@ -111,11 +112,11 @@ namespace INITool.Tests
                 mem.Position = 0;
                 var memReader = new StreamReader(mem);
                 var read = memReader.ReadToEnd();
-                Assert.Equal("[section]\r", read);
+                Assert.AreEqual("[section]\r", read);
             }
         }
 
-        [Fact]
+        [Test]
         public void TestLineEndingCRLF()
         {
             using (var mem = new MemoryStream())
@@ -129,7 +130,7 @@ namespace INITool.Tests
                 mem.Position = 0;
                 var memReader = new StreamReader(mem);
                 var read = memReader.ReadToEnd();
-                Assert.Equal("[section]\r\n", read);
+                Assert.AreEqual("[section]\r\n", read);
             }
         }
     }

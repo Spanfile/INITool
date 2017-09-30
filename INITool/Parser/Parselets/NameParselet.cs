@@ -8,7 +8,8 @@ namespace INITool.Parser.Parselets
 {
     internal class NameParselet : Parselet, IPrefixParselet
     {
-        public NameParselet(Parser parser, Tokeniser.Tokeniser tokeniser) : base(parser, tokeniser)
+        public NameParselet(Parser parser, Tokeniser.Tokeniser tokeniser, IniOptions options)
+            : base(parser, tokeniser, options)
         {
         }
 

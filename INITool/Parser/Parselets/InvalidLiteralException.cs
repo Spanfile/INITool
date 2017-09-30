@@ -4,6 +4,10 @@ using INITool.Parser.Tokeniser;
 
 namespace INITool.Parser.Parselets
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Represents an error thrown when trying to parse an invalid value literal
+    /// </summary>
     [Serializable]
     public class InvalidLiteralException : ParserException
     {

@@ -22,6 +22,7 @@ namespace INITool.Parser.Tokeniser
             if (ReferenceEquals(null, obj))
                 return false;
 
+            // ReSharper disable once MergeCastWithTypeCheck
             return obj is Position && Equals((Position) obj);
         }
 

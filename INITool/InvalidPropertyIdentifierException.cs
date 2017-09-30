@@ -3,6 +3,10 @@ using System.Runtime.Serialization;
 
 namespace INITool
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Represents an error thrown when trying to parse an invalid property identifier
+    /// </summary>
     [Serializable]
     public class InvalidPropertyIdentifierException : Exception
     {

@@ -3,6 +3,10 @@ using System.Runtime.Serialization;
 
 namespace INITool.Parser
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Represents errors that occur when parsing a document
+    /// </summary>
     [Serializable]
     public class ParserException : Exception
     {
